@@ -19,7 +19,7 @@ You must:
 **Purpose of this repo:**
 - @worktif/utils is a TypeScript-first utility toolkit for enterprise Node.js, CLI, and AWS Lambda applications.
 - Provides composable primitives for structured logging, lightweight dependency injection, method decorators, exception handling, and schema-friendly I/O.
-- Published to npm as `@worktif/utils` under Elastic License 2.0.
+- Published to npm as `@worktif/utils` under Apache 2.0.
 
 **Core domains / bounded contexts:**
 - Logger: Production-grade structured logging built on @aws-lambda-powertools/logger with custom formatters and serializers.
@@ -32,7 +32,7 @@ You must:
 **Critical invariants:**
 - The `reflect-metadata` import must always be first in entry points when using decorators.
 - Public API contracts (exported types, function signatures) must remain backwards compatible.
-- Licensing headers (Elastic License 2.0) must be preserved in all source files.
+- Licensing headers (Apache 2.0) must be preserved in all source files.
 - Logger sampling and level defaults are stage-aware and must not be altered without explicit instruction.
 
 ## 2. Environment & assumptions
@@ -161,15 +161,10 @@ dist/                   — Build output (gitignored)
 - Structured logs with service name and action name for correlation.
 
 **License headers:**
-All source files must include the Elastic License 2.0 header:
+All source files must include the Apache 2.0 header:
 ```typescript
-/*
- * Elastic License 2.0
- * Copyright (C) 2025–present Raman Marozau, Work Target Insight Function. All rights reserved.
- * Contact: raman@worktif.com
- * ...
- * SPDX-License-Identifier: Elastic-2.0
- */
+// SPDX-License-Identifier: Apache-2.0
+// Copyright (c) 2025-present Raman Marozau <raman@worktif.com>, target function contributors
 ```
 
 ## 6. Testing strategy

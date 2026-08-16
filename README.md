@@ -10,7 +10,6 @@
   <a href="https://www.npmjs.com/package/@worktif/utils"><img src="https://img.shields.io/npm/v/@worktif/utils?style=for-the-badge&logo=npm&color=cb3837" alt="npm version"></a>
   <a href="https://nodejs.org"><img src="https://img.shields.io/badge/node-%3E%3D20-brightgreen?style=for-the-badge&logo=nodedotjs" alt="Node >=20"></a>
   <a href="https://www.typescriptlang.org"><img src="https://img.shields.io/badge/typescript-5.8%20strict-3178c6?style=for-the-badge&logo=typescript" alt="TypeScript strict"></a>
-  <a href="https://www.elastic.co/licensing/elastic-license"><img src="https://img.shields.io/badge/license-Elastic--2.0-0077cc?style=for-the-badge&logo=elastic" alt="License Elastic-2.0"></a>
   <br>
   <a href="https://esbuild.github.io"><img src="https://img.shields.io/badge/build-esbuild-ffcf00?style=for-the-badge&logo=esbuild&logoColor=black" alt="Build esbuild"></a>
   <a href="https://nodejs.org"><img src="https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey?style=for-the-badge&logo=nodedotjs" alt="Platform"></a>
@@ -21,6 +20,8 @@
   <a href="#testing"><img src="https://img.shields.io/badge/tests-317%20passing-brightgreen?style=for-the-badge&logo=jest" alt="Tests"></a>
   <a href="#testing"><img src="https://img.shields.io/badge/e2e-24%20passing-brightgreen?style=for-the-badge&logo=jest" alt="E2E"></a>
   <a href="https://fast-check.dev"><img src="https://img.shields.io/badge/property--based-fast--check-8a2be2?style=for-the-badge" alt="Property-based testing"></a>
+  <br>
+  <a href="https://github.com/stdiobus/mcp-agentic/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue?style=for-the-badge&logo=opensourceinitiative" alt="License"></a>
 </p>
 
 ## Overview
@@ -456,14 +457,6 @@ Security and responsible disclosure
 - Do not include secrets in tests or examples
 - Report vulnerabilities privately to the maintainers contact below
 
-## License
-
-This project is licensed under the [Elastic License 2.0](https://raw.githubusercontent.com/elastic/elasticsearch/v7.16.3/licenses/ELASTIC-LICENSE-2.0.txt).
-
-- See LICENSE for the full license text.
-- See NOTICE for attribution and relicensing details (re-licensed from BUSL-1.1 on 2025-09-15).
-- See `THIRD_PARTY_LICENSES.txt` for third-party attributions and license texts.
-
 
 ## Maintainers / Contact
 
@@ -474,3 +467,7 @@ If you have production questions, provide:
 - Package version, Node version, runtime (local/Lambda/container)
 - Minimal reproduction (if applicable)
 - Redacted logs with service name and action name for correlation
+
+## License
+
+Apache-2.0
