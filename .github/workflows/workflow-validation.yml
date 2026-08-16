@@ -1,0 +1,117 @@
+name: Workflow Validation
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  workflow-policy:
+    name: GitHub Actions policy
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+
+      - name: Validate workflow YAML syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          ruby - <<'RUBY'
+          require 'yaml'
+
+          Dir['.github/workflows/*.{yml,yaml}'].sort.each do |path|
+            YAML.safe_load(File.read(path), permitted_classes: [Symbol], aliases: true)
+            puts "Parsed #{path}"
+          end
+          RUBY
+
+      - name: Enforce workflow security policy
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python3 - <<'PYTHON'
+          import pathlib
+          import re
+          import sys
+
+          workflow_paths = sorted(pathlib.Path('.github/workflows').glob('*.yml'))
+          workflow_paths.extend(sorted(pathlib.Path('.github/workflows').glob('*.yaml')))
+
+          failures = []
+
+          forbidden_patterns = [
+              (re.compile('pull_' + 'request_target'), 'unsafe PR target trigger is forbidden'),
+              (re.compile('continue-' + 'on-error'), 'error-masking workflow option is forbidden'),
+              (re.compile(r'\|\|\s*true'), 'shell error masking is forbidden'),
+              (re.compile('secrets' + r'\.'), 'workflow must not reference secrets'),
+              (re.compile(r'\bcontents:\s*write\b'), 'repository write permission is forbidden'),
+              (re.compile(r'\bpackages:\s*write\b'), 'package write permission is forbidden'),
+              (re.compile(r'\bid-token:\s*write\b'), 'OIDC write permission is forbidden'),
+              (re.compile(r'\bnpm\s+publish\b'), 'package publishing command is forbidden'),
+              (re.compile(r'\byarn\s+(npm\s+)?publish\b'), 'package publishing command is forbidden'),
+              (re.compile('publish' + r':npm'), 'package publishing script is forbidden'),
+              (re.compile(r'\bgh\s+release\b'), 'release creation is forbidden'),
+              (re.compile(r'\bdocker\s+push\b'), 'container publishing command is forbidden'),
+              (re.compile(r'\bgit\s+tag\b'), 'tag creation is forbidden'),
+          ]
+
+          uses_pattern = re.compile('uses' + r':\s*([^\s#]+)(?:\s*#\s*(.*))?')
+          sha_ref_pattern = re.compile(r'@[0-9a-f]{40}$')
+          version_comment_pattern = re.compile(r'\bv[0-9]+(?:\.[0-9]+){0,2}\b')
+
+          for path in workflow_paths:
+              lines = path.read_text(encoding='utf-8').splitlines()
+              text = '\n'.join(lines)
+
+              if 'permissions:\n  contents: read' not in text:
+                  failures.append(f'{path}: top-level permissions must include contents: read')
+
+              for line_number, line in enumerate(lines, start=1):
+                  for pattern, message in forbidden_patterns:
+                      if pattern.search(line):
+                          failures.append(f'{path}:{line_number}: {message}')
+
+                  uses_match = uses_pattern.search(line)
+                  if not uses_match:
+                      continue
+
+                  action_ref = uses_match.group(1)
+                  comment = uses_match.group(2) or ''
+
+                  if action_ref.startswith('./'):
+                      continue
+
+                  if not sha_ref_pattern.search(action_ref):
+                      failures.append(f'{path}:{line_number}: action is not pinned to a full commit SHA: {action_ref}')
+
+                  if not version_comment_pattern.search(comment):
+                      failures.append(f'{path}:{line_number}: pinned action must keep a readable version comment')
+
+                  if action_ref.startswith('actions/checkout@'):
+                      window = '\n'.join(lines[line_number:line_number + 8])
+                      if 'persist-credentials: false' not in window:
+                          failures.append(f'{path}:{line_number}: checkout must set persist-credentials: false')
+
+          if failures:
+              print('Workflow policy violations:', file=sys.stderr)
+              for failure in failures:
+                  print(f'  - {failure}', file=sys.stderr)
+              sys.exit(1)
+
+          print(f'Validated {len(workflow_paths)} workflow file(s).')
+          PYTHON

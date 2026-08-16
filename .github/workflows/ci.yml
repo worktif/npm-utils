@@ -1,0 +1,157 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  repository-hygiene:
+    name: Repository hygiene
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+
+      - name: Verify package-manager contract
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          unexpected_locks="$(find . -maxdepth 2 -type f \( -name 'package-lock.json' -o -name 'pnpm-lock.yaml' \) -print)"
+          if [ -n "${unexpected_locks}" ]; then
+            printf 'Unexpected lockfile(s); this project uses yarn.lock only:\n%s\n' "${unexpected_locks}" >&2
+            exit 1
+          fi
+
+          test -f yarn.lock
+
+      - name: Reject merge-conflict markers
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if git grep -n -E '^(<<<<<<<|=======|>>>>>>>)' -- ':!yarn.lock'; then
+            echo 'Merge-conflict marker(s) found.' >&2
+            exit 1
+          fi
+
+      - name: Reject committed generated outputs
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          tracked_generated="$(git ls-files dist .docs coverage node_modules bin/esbuild/dist '*.tsbuildinfo' '*.tgz' '*.DS_Store')"
+          if [ -n "${tracked_generated}" ]; then
+            printf 'Generated or local-only file(s) are tracked unexpectedly:\n%s\n' "${tracked_generated}" >&2
+            exit 1
+          fi
+
+      - name: Check diff whitespace
+        shell: bash
+        run: git diff --check
+
+  node-validation:
+    name: Node ${{ matrix.node }} validation
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        node:
+          - 20.x
+          - 24.x
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Install dependencies from lockfile
+        shell: bash
+        run: yarn install --frozen-lockfile --non-interactive --ignore-scripts
+
+      - name: Type/declaration check
+        shell: bash
+        run: yarn run types
+
+      - name: Run unit and source integration tests
+        shell: bash
+        run: yarn test
+
+      - name: Run coverage gate
+        if: matrix.node == '20.x'
+        shell: bash
+        run: yarn test:coverage
+
+      - name: Build production bundle and documentation
+        shell: bash
+        run: yarn build
+
+      - name: Smoke test built runtime entry
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          node - <<'NODE'
+          const pkg = require('./dist/bundle.js');
+          const exportedNames = Object.keys(pkg);
+
+          if (!exportedNames.includes('logger')) {
+            throw new Error('Built bundle does not export logger.');
+          }
+
+          if (!exportedNames.includes('PureContainer')) {
+            throw new Error('Built bundle does not export PureContainer.');
+          }
+
+          console.log(`Built bundle smoke test passed with ${exportedNames.length} exports.`);
+          NODE
+
+      - name: Run consumer-contract e2e tests
+        if: matrix.node == '20.x'
+        shell: bash
+        run: yarn test:e2e
+
+      - name: Verify package tarball contents
+        if: matrix.node == '20.x'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          package_path="${RUNNER_TEMP}/worktif-utils.tgz"
+          yarn pack --filename "${package_path}"
+
+          tar -tf "${package_path}" | grep -q '^package/dist/bundle.js$'
+          tar -tf "${package_path}" | grep -q '^package/dist/src/index.d.ts$'
+
+      - name: Write job summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '### CI validation'
+            echo ''
+            echo "- Node.js: ${{ matrix.node }}"
+            echo '- Install: yarn install --frozen-lockfile --non-interactive --ignore-scripts'
+            echo '- Type check: yarn run types'
+            echo '- Unit/source integration tests: yarn test'
+            echo '- Build: yarn build'
+          } >> "${GITHUB_STEP_SUMMARY}"
