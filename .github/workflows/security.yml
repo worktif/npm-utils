@@ -57,7 +57,7 @@ jobs:
 
   codeql:
     name: CodeQL SAST
-    if: 'enabled' == 'disabled'
+    if: github.event_name == 'codeql_is_DISABLED'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
