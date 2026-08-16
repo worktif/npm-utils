@@ -48,6 +48,7 @@ amplify/.cache/
 
 # testing
 !jest.config.js
+!test/e2e/guard/ensure-fresh-dist.js
 /coverage
 
 # production
