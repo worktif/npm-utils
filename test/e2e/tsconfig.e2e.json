@@ -1,0 +1,52 @@
+{
+  // ---------------------------------------------------------------------------
+  // E2E / consumer-contract TypeScript configuration.
+  //
+  // Spec: library-test-coverage — Task 7.1.
+  // Requirements: 11.4 (and the umbrella for 11.1/11.2 the e2e specs assert).
+  //
+  // This config makes ts-jest compile the e2e specs + fixtures EXACTLY as an
+  // external consumer of the published package would: the only module the
+  // fixtures may resolve to the library is the published name `@worktif/utils`,
+  // which is mapped to the BUILT type entry (`dist/src/index.d.ts`).
+  //
+  // Critically, it does NOT extend the root tsconfig. Extending would inherit the
+  // repository path aliases (`@core/*`, `@utils/*` → `src/*`) and let a consumer
+  // fixture accidentally import from source — defeating the entire point of a
+  // consumer-contract test. Here `paths` is intentionally closed to the single
+  // public package specifier.
+  // ---------------------------------------------------------------------------
+  "compilerOptions": {
+    "target": "ES2017",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "lib": [
+      "ES2017",
+      "esnext"
+    ],
+    "types": [
+      "node",
+      "jest"
+    ],
+    "strict": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "resolveJsonModule": true,
+    "noEmit": true,
+    // Resolve the published package name to the BUILT declaration entry only.
+    // No `@core/*` / `@utils/*` aliases here by design — consumers cannot see src.
+    "baseUrl": ".",
+    "paths": {
+      "@worktif/utils": [
+        "../../dist/src/index.d.ts"
+      ]
+    }
+  },
+  "include": [
+    "./**/*.ts"
+  ]
+}
