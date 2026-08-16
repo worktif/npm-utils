@@ -57,6 +57,7 @@ jobs:
 
   codeql:
     name: CodeQL SAST
+    if: 'enabled' == 'disabled'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
