@@ -137,10 +137,12 @@ jobs:
           set -euo pipefail
 
           package_path="${RUNNER_TEMP}/worktif-utils.tgz"
+          package_contents="${RUNNER_TEMP}/worktif-utils.contents.txt"
           yarn pack --filename "${package_path}"
 
-          tar -tf "${package_path}" | grep -q '^package/dist/bundle.js$'
-          tar -tf "${package_path}" | grep -q '^package/dist/src/index.d.ts$'
+          tar -tf "${package_path}" > "${package_contents}"
+          grep -Fxq 'package/dist/bundle.js' "${package_contents}"
+          grep -Fxq 'package/dist/src/index.d.ts' "${package_contents}"
 
       - name: Write job summary
         if: always()

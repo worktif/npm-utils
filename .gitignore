@@ -35,24 +35,17 @@ amplify/.cache/
 .tmp
 
 # Javasciprt built source
-!build/*.js
-!build/static/js/*.js
 *.js
-!server.js
-!request.js
 
 # dependencies
-/node_modules
-/.pnp
+node_modules/
+.pnp/
 .pnp.js
 
 # testing
 !jest.config.js
 !test/e2e/guard/ensure-fresh-dist.js
 /coverage
-
-# production
-#/build
 
 # misc
 .DS_Store
