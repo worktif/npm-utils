@@ -142,11 +142,11 @@ describe('Bundle.runContainer — Property 6: eager stack population and `_const
           // `_const_bind` keys as constant bindings (eager raw values).
           const factory: Record<string, unknown> = {};
           for (const { key, tag } of factoryBindings) {
-            factory[key] = { instance: FakeLeaf, args: [{ value: tag }], dependencies: [] };
+            factory[key] = { target: FakeLeaf, args: [{ value: tag }], deps: [] };
           }
           const constant: Record<string, unknown> = {};
           for (const { key, value } of constBindings) {
-            constant[key] = { instance: FakeLeaf, args: [{ value }], dependencies: [] };
+            constant[key] = { target: FakeLeaf, args: [{ value }], deps: [] };
           }
 
           const bundle = TestBundle.withGraph({ factory, constant } as FakeGraphConfig);

@@ -115,10 +115,10 @@ describe('createInstance / Constructor — construction behavior', () => {
     // `Constructor<FakeLeaf>` is the exact shape `createInstance` expects; binding the
     // class to that type proves the generic flows the instance type through to the result.
     const ctor: Constructor<FakeLeaf> = FakeLeaf;
-    const instance: FakeLeaf = createInstance(ctor, ['typed']);
+    const target: FakeLeaf = createInstance(ctor, ['typed']);
 
-    expect(instance).toBeInstanceOf(FakeLeaf);
-    expect(instance.tag).toBe('typed');
+    expect(target).toBeInstanceOf(FakeLeaf);
+    expect(target.tag).toBe('typed');
   });
 
   test('Constructor<T> accepts any class assignable to its new-signature', () => {

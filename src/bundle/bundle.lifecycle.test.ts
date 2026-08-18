@@ -156,10 +156,10 @@ describe('Bundle.runContainer — eager stack population and `_const_bind` routi
 
     const config: FakeGraphConfig = {
       factory: {
-        custom_leaf_bind: { instance: FakeLeaf, args: [{ value: 'custom' }], dependencies: [] },
+        custom_leaf_bind: { target: FakeLeaf, args: [{ value: 'custom' }], deps: [] },
       },
       constant: {
-        custom_flag_const_bind: { instance: FakeLeaf, args: [{ value: true }], dependencies: [] },
+        custom_flag_const_bind: { target: FakeLeaf, args: [{ value: true }], deps: [] },
       },
     };
 

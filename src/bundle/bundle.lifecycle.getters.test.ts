@@ -87,14 +87,14 @@ describe('Bundle.tieLambdas — lambda-handler binding (Requirement 12.2; lifecy
   const lambdaGraph: FakeGraphConfig = {
     factory: {
       lambda_create_user_factory_bind: {
-        instance: FakeLambda,
+        target: FakeLambda,
         args: [{ value: HANDLER_TAG }],
-        dependencies: [],
+        deps: [],
       },
       plain_service_bind: {
-        instance: FakeLambda,
+        target: FakeLambda,
         args: [{ value: 'not-a-lambda' }],
-        dependencies: [],
+        deps: [],
       },
     },
   };
@@ -163,9 +163,9 @@ describe('Bundle.cli / Bundle.env accessors — stack routing (Requirement 12.2)
     const graph: FakeGraphConfig = {
       factory: {
         loggerCli_plugin: {
-          instance: FakeLambda,
+          target: FakeLambda,
           args: [{ value: 'logger' }],
-          dependencies: [],
+          deps: [],
         },
       },
     };
@@ -182,9 +182,9 @@ describe('Bundle.cli / Bundle.env accessors — stack routing (Requirement 12.2)
     const graph: FakeGraphConfig = {
       factory: {
         env_config_default_bind: {
-          instance: FakeLambda,
+          target: FakeLambda,
           args: [{ value: 'env' }],
-          dependencies: [],
+          deps: [],
         },
       },
     };
@@ -198,7 +198,7 @@ describe('Bundle.cli / Bundle.env accessors — stack routing (Requirement 12.2)
     const TestBundle = loadTestBundle();
     const bundle = TestBundle.withGraph({
       factory: {
-        unrelated_bind: { instance: FakeLambda, args: [{ value: 'x' }], dependencies: [] },
+        unrelated_bind: { target: FakeLambda, args: [{ value: 'x' }], deps: [] },
       },
     });
 

@@ -131,9 +131,9 @@ describe('PureContainer forward-declared dependency (KNOWN BUG — Requirement 3
     // `reduce` accumulator is a truthy object at `node`'s position, so the lazy
     // `tiedAccumulated['leaf'].instance` dereference hits `undefined.instance`.
     container.tie({
-      filler: { instance: FakeLeaf, args: [{ value: 'filler' }], dependencies: [] },
-      node: { instance: FakeNode, args: [{ value: 'node-arg' }], dependencies: ['leaf'] },
-      leaf: { instance: FakeLeaf, args: [{ value: 'leaf-tag' }], dependencies: [] },
+      filler: { target: FakeLeaf, args: [{ value: 'filler' }], deps: [] },
+      node: { target: FakeNode, args: [{ value: 'node-arg' }], deps: ['leaf'] },
+      leaf: { target: FakeLeaf, args: [{ value: 'leaf-tag' }], deps: [] },
     });
 
     // CURRENT (defective) behavior: resolving the forward-referencing binding throws.
@@ -161,8 +161,8 @@ describe('PureContainer forward-declared dependency (KNOWN BUG — Requirement 3
 
     // Identical instances/args, only the declaration order changed: `leaf` before `node`.
     container.tie({
-      leaf: { instance: FakeLeaf, args: [{ value: 'leaf-tag' }], dependencies: [] },
-      node: { instance: FakeNode, args: [{ value: 'node-arg' }], dependencies: ['leaf'] },
+      leaf: { target: FakeLeaf, args: [{ value: 'leaf-tag' }], deps: [] },
+      node: { target: FakeNode, args: [{ value: 'node-arg' }], deps: ['leaf'] },
     });
 
     const node = container.run<FakeNode>('node');

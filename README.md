@@ -209,21 +209,21 @@ const container = new PureContainer();
 // `dependencies` (by key). Here MetricsService receives a ConfigService instance.
 container.tie({
   ConfigService: {
-    instance: ConfigService,
+    target: ConfigService,
     args: [{ value: process.env.STAGE ?? 'local' }],
-    dependencies: [],
+    deps: [],
   },
   MetricsService: {
-    instance: MetricsService,
+    target: MetricsService,
     args: [],
-    dependencies: ['ConfigService'],
+    deps: ['ConfigService'],
   },
 });
 
 // Constants are bound separately and retrieved with `runConstant`
 // (they are not resolved as factory dependencies).
 container.tieConst({
-  FeatureFlags: { instance: null, args: [{ value: { beta: true } }], dependencies: [] },
+  FeatureFlags: { target: null, args: [{ value: { beta: true } }], deps: [] },
 });
 
 // `run` builds a fresh instance on each call (non-singleton by design).

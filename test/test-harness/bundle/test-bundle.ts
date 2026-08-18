@@ -13,7 +13,7 @@ import { FakeLeaf, FakeNode } from '../fakes';
 
 /**
  * A fake dependency-injection graph shaped exactly like the production `injectContainer`
- * payload — a map of binding key → `{ instance, args, dependencies }` — but populated
+ * payload — a map of binding key → `{ target, args, dependencies }` — but populated
  * with the dependency-free {@link FakeLeaf}/{@link FakeNode} fixtures instead of the real
  * Env/Logger/Serializer collaborators. Used to drive {@link Bundle.runContainer} without
  * pulling in production side effects.
@@ -108,21 +108,21 @@ export class TestBundle extends Bundle {
     return {
       factory: {
         [FAKE_GRAPH_KEYS.LEAF]: {
-          instance: FakeLeaf,
+          target: FakeLeaf,
           args: [{ value: FAKE_LEAF_TAG }],
-          dependencies: [],
+          deps: [],
         },
         [FAKE_GRAPH_KEYS.NODE]: {
-          instance: FakeNode,
+          target: FakeNode,
           args: [{ value: FAKE_NODE_ARG }],
-          dependencies: [FAKE_GRAPH_KEYS.LEAF],
+          deps: [FAKE_GRAPH_KEYS.LEAF],
         },
       },
       constant: {
         [FAKE_GRAPH_KEYS.CONSTANT]: {
-          instance: FakeLeaf,
+          target: FakeLeaf,
           args: [{ value: FAKE_CONST_VALUE }],
-          dependencies: [],
+          deps: [],
         },
       },
     };

@@ -31,7 +31,7 @@ export class PureContainer<T extends PropertyKey = string> extends Container {
 
 
   /**
-   * The `tied` variable is an instance of `PureTied`, which is parameterized with `any` type,
+   * The `tied` variable is an target of `PureTied`, which is parameterized with `any` type,
    * extending the structure defined by `PureTieInstance`.
    *
    * This variable serves as a storage for reactive bindings, typically in scenarios that require
@@ -42,21 +42,21 @@ export class PureContainer<T extends PropertyKey = string> extends Container {
    * data structure are propagated automatically to the subscribed elements or components.
    *
    * Usage of this variable should take into consideration the restriction to adhere to or
-   * extend the `PureTieInstance` interface, which defines the contract for the tied instances.
+   * extend the `PureTieInstance` interface, which defines the contract for the tied targets.
    *
    * @todo: extend by PureTieInstance
    */
   public tied: Maybe<PureTied<T>>;
 
   /**
-   * Executes a factory method with the given dependency name and arguments, returning the constructed instance.
+   * Executes a factory method with the given dependency name and arguments, returning the constructed target.
    *
    * @param {Di} name - The dependency identifier to locate the associated factory.
    * @param {...any} args - The arguments to pass to the factory function.
-   * @return {T} The instance created by the factory method.
+   * @return {T} The target created by the factory method.
    *
    * @note: run – means DI composition instead of
-   *        get - the default Singleton instance
+   *        get - the default Singleton target
    */
   public run<T>(name: keyof PureTied<T>, ...args: any): T {
     return this.get<Factory<T>>(
@@ -77,12 +77,12 @@ export class PureContainer<T extends PropertyKey = string> extends Container {
 
 
   /**
-   * Binds and configures the provided options to the current instance.
-   * Creates a "tied" object by mapping each option key to a bound instance.
+   * Binds and configures the provided options to the current target.
+   * Creates a "tied" object by mapping each option key to a bound target.
    *
-   * @param {PureTiedOptions<any>} options - An object representing the dependencies to bind and their configurations.
+   * @param {PureTiedOptions<any>} options - An object representing the deps to bind and their configurations.
    * @param {...any} args - Additional arguments that may be required for binding logic (currently unused).
-   * @return {void} This method does not return a value but updates the tied object of the instance.
+   * @return {void} This method does not return a value but updates the tied object of the target.
    *
    * @example
    * ```typescript
@@ -100,11 +100,11 @@ export class PureContainer<T extends PropertyKey = string> extends Container {
       ...Object.fromEntries<any>(
         Object
           .entries(options)
-          .map(([name, instance]: [string, any]) => {
+          .map(([name, target]: [string, any]) => {
             return [
               name,
               this.bind(name)
-                .to(instance)
+                .to(target)
                 .inSingletonScope()];
           }),
       ),
@@ -112,13 +112,13 @@ export class PureContainer<T extends PropertyKey = string> extends Container {
   }
 
   /**
-   * Binds the constants provided in the `options` parameter to the instance's configuration, allowing
-   * dependencies and values to be organized under specified names.
+   * Binds the constants provided in the `options` parameter to the target's configuration, allowing
+   * deps and values to be organized under specified names.
    *
    * @param {PureTiedOptions<any, T>} options - An object containing configuration for the constants. Each entry
-   * includes a name, instance, arguments, and dependencies used for the binding.
+   * includes a name, target, arguments, and deps used for the binding.
    * @param {...any} args - Additional arguments that may be used when processing the provided options.
-   * @return {void} This method does not return a value as it modifies the internal `tied` property of the instance.
+   * @return {void} This method does not return a value as it modifies the internal `tied` property of the target.
    */
   public tieConst(options: PureTiedOptions<any, T>, ...args: any): void {
     const proto: Maybe<any> = Object.getPrototypeOf(Object.getPrototypeOf(this));
@@ -129,16 +129,16 @@ export class PureContainer<T extends PropertyKey = string> extends Container {
     const tied = {
       ...Object
         .entries(options)
-        .reduce((tiedAccumulated: Maybe<PureTied<any>>, [name, { instance, args, dependencies }]: [string, any]) => {
+        .reduce((tiedAccumulated: Maybe<PureTied<any>>, [name, { target, args, deps }]: [string, any]) => {
           const { value, condition = identity }: PureStackArgs = args[0];
           const constInst = this.bind(name)
             .toConstantValue(condition(value));
           return {
             ...tiedAccumulated,
             [name]: {
-              instance: constInst,
+              target: constInst,
               args,
-              dependencies,
+              deps,
             }
           };
         }, proto && 'tied' in proto ? { ...proto.tied, ...this.tied  } : this.tied)
@@ -153,7 +153,7 @@ export class PureContainer<T extends PropertyKey = string> extends Container {
     //   ...Object.fromEntries<any>(
     //     Object
     //       .entries(options)
-    //       .map(([name, { instance, args, dependencies }]: [string, any]) => {
+    //       .map(([name, { target, args, deps }]: [string, any]) => {
     //         return [
     //           name,
     //           this.bind(name)
@@ -166,9 +166,9 @@ export class PureContainer<T extends PropertyKey = string> extends Container {
 
 
   /**
-   * Binds the given options and additional arguments to the current instance.
+   * Binds the given options and additional arguments to the current target.
    *
-   * @param {PureTiedOptions<TT, T>} options - An object containing the bindings, where the keys represent names, and the values contain configuration for instances and dependencies.
+   * @param {PureTiedOptions<TT, T>} options - An object containing the bindings, where the keys represent names, and the values contain configuration for targets and deps.
    * @param {...any} args - Additional arguments to be passed during binding, if necessary.
    * @return {void} This method does not return a value but sets up the specified bindings.
    */
@@ -182,8 +182,8 @@ export class PureContainer<T extends PropertyKey = string> extends Container {
     const tied = {
       ...Object
         .entries(options)
-        .reduce((tiedAccumulated: Maybe<PureTied<any>>, [name, { instance, args, dependencies }]: [string, any]) => {
-          const depInstance: BindWhenOnFluentSyntax<Factory<any>> = this.bind<Factory<typeof instance>>(composeFactoryBind(name))
+        .reduce((tiedAccumulated: Maybe<PureTied<any>>, [name, { target, args, deps }]: [string, any]) => {
+          const depInstance: BindWhenOnFluentSyntax<Factory<any>> = this.bind<Factory<typeof target>>(composeFactoryBind(name))
             .toFactory((context: ResolutionContext) => {
               return () => {
 
@@ -193,7 +193,7 @@ export class PureContainer<T extends PropertyKey = string> extends Container {
                     optionalArgs = args.map(({ value, condition = identity }: PureStackArgs) => condition(value));
                   } catch (e) {
                     throw CustomException.InternalError(`
-                      Pure Container Exception by invalid arguments, ${JSON.stringify(dependencies)}: ${typeof instance}.
+                      Pure Container Exception by invalid arguments, ${JSON.stringify(deps)}: ${typeof target}.
                       Exception message: ${error(e)}
                     `, {
                       error: e,
@@ -201,16 +201,16 @@ export class PureContainer<T extends PropertyKey = string> extends Container {
                   }
                 }
 
-                let deps: any[] = [];
+                let resolvedDependencies: any[] = [];
                 try {
-                  deps = dependencies.map((dep: string) => {
-                    const inst: Maybe<any> = tiedAccumulated ? tiedAccumulated[dep].instance : void 0;
+                  resolvedDependencies = deps.map((dep: string) => {
+                    const inst: Maybe<any> = tiedAccumulated ? tiedAccumulated[dep].target : void 0;
                     return context.get<Factory<typeof inst>>(composeFactoryBind(dep))() as typeof inst;
                     // const inst: Maybe<string> = Object.keys(previousTied).find((keyInst: string) => keyInst === dep);
                   });
                 } catch (e) {
                   throw CustomException.InternalError(`
-                    Pure Container Exception by invalid dependencies, ${JSON.stringify(dependencies)}: ${typeof instance}.
+                    Pure Container Exception by invalid deps, ${JSON.stringify(resolvedDependencies)}: ${typeof target}.
                     Exception message: ${error(e)}
                   `, {
                     error: e,
@@ -218,12 +218,12 @@ export class PureContainer<T extends PropertyKey = string> extends Container {
                 }
 
                 try {
-                  // @todo: set rule: optional args are the first instance args, deps are the second args
-                  const instanceArgs: any[] = [...optionalArgs, ...deps];
-                  return new (instance as Constructor<any>)(...instanceArgs);
+                  // @todo: set rule: optional args are the first target args, deps are the second args
+                  const targetArgs: any[] = [...optionalArgs, ...resolvedDependencies];
+                  return new (target as Constructor<any>)(...targetArgs);
                 } catch (e) {
                   throw CustomException.InternalError(
-                    `Pure Container Exception: ${typeof instance}.
+                    `Pure Container Exception: ${typeof target}.
                     Instance: ${name}
                   `, {
                       error: e,
@@ -233,17 +233,17 @@ export class PureContainer<T extends PropertyKey = string> extends Container {
             });
           // Object.assign(tiedAccumulated ?? {}, {
           //   [name]: {
-          //     instance: depInstance,
+          //     target: depInstance,
           //     args,
-          //     dependencies,
+          //     deps,
           //   }
           // });
           return {
             ...tiedAccumulated,
             [name]: {
-              instance: depInstance,
+              target: depInstance,
               args,
-              dependencies,
+              deps,
             }
           };
         }, proto && 'tied' in proto ? { ...proto.tied, ...this.tied  } : this.tied)
@@ -295,7 +295,7 @@ export class PureContainer<T extends PropertyKey = string> extends Container {
   // }
   //
   // /**
-  //  * Marks the current instance as initialized and ready to use by setting an internal flag.
+  //  * Marks the current target as initialized and ready to use by setting an internal flag.
   //  *
   //  * @return {void} Indicates the method does not return a value.
   //  *
@@ -306,10 +306,10 @@ export class PureContainer<T extends PropertyKey = string> extends Container {
   // }
   //
   // /**
-  //  * Waits until the instance is fully initialized and ready for use.
+  //  * Waits until the target is fully initialized and ready for use.
   //  * Executes a loop that checks the `_isInitialized` property and resolves when the condition is met.
   //  *
-  //  * @return {Promise<void>} A promise that resolves once the instance is ready.
+  //  * @return {Promise<void>} A promise that resolves once the target is ready.
   //  *
   //  * @deprecated
   //  */
