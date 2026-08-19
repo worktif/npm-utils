@@ -292,7 +292,7 @@ describe('Property 4 — constant binding round-trip', () => {
         expect(() => container.get(composeFactoryBind(key))).toThrow();
 
         // ...and wiring the constant as a `tie` graph dependency fails through the
-        // "invalid dependencies" surface (resolution goes via `composeFactoryBind(dep)`).
+        // "invalid deps" surface (resolution goes via `composeFactoryBind(dep)`).
         container.tie({
           node: { target: FakeNode, args: [], deps: [key] },
         } as never);
@@ -301,7 +301,7 @@ describe('Property 4 — constant binding round-trip', () => {
 
         expect(failure).toBeInstanceOf(CustomException);
         expect(failure.code).toBe(CustomErrorType.InternalError);
-        expect(failure.message).toContain('invalid dependencies');
+        expect(failure.message).toContain('invalid deps');
       }),
       { numRuns: 100 },
     );
@@ -314,7 +314,7 @@ describe('Property 4 — constant binding round-trip', () => {
  * For any binding whose arg `condition` mapper throws, whose dependency is unregistered,
  * or whose constructor throws, the lazily-invoked factory raises a
  * `CustomException.InternalError`. Each failure path carries its own discriminating
- * message fragment ("invalid arguments", "invalid dependencies", "Pure Container
+ * message fragment ("invalid arguments", "invalid deps", "Pure Container
  * Exception:") so a single property covers all three surfaces across generated keys.
  *
  * **Validates: Requirements 4.5**
@@ -349,7 +349,7 @@ describe('Property 5 — error surfaces on invalid args/deps/ctor', () => {
     );
   });
 
-  test('invalid dependencies: an unregistered dependency yields an InternalError', () => {
+  test('invalid deps: an unregistered dependency yields an InternalError', () => {
     fc.assert(
       fc.property(arbBindingKey, (key: string) => {
         const container = new PureContainer();
@@ -364,7 +364,7 @@ describe('Property 5 — error surfaces on invalid args/deps/ctor', () => {
 
         expect(failure).toBeInstanceOf(CustomException);
         expect(failure.code).toBe(CustomErrorType.InternalError);
-        expect(failure.message).toContain('invalid dependencies');
+        expect(failure.message).toContain('invalid deps');
       }),
       { numRuns: 100 },
     );

@@ -183,7 +183,7 @@ export class PureContainer<T extends PropertyKey = string> extends Container {
       ...Object
         .entries(options)
         .reduce((tiedAccumulated: Maybe<PureTied<any>>, [name, { target, args, deps }]: [string, any]) => {
-          const depInstance: BindWhenOnFluentSyntax<Factory<any>> = this.bind<Factory<typeof target>>(composeFactoryBind(name))
+          const depTarget: BindWhenOnFluentSyntax<Factory<any>> = this.bind<Factory<typeof target>>(composeFactoryBind(name))
             .toFactory((context: ResolutionContext) => {
               return () => {
 
@@ -210,7 +210,7 @@ export class PureContainer<T extends PropertyKey = string> extends Container {
                   });
                 } catch (e) {
                   throw CustomException.InternalError(`
-                    Pure Container Exception by invalid deps, ${JSON.stringify(resolvedDependencies)}: ${typeof target}.
+                    Pure Container Exception by invalid deps, ${JSON.stringify(deps)}: ${typeof target}.
                     Exception message: ${error(e)}
                   `, {
                     error: e,
@@ -241,7 +241,7 @@ export class PureContainer<T extends PropertyKey = string> extends Container {
           return {
             ...tiedAccumulated,
             [name]: {
-              target: depInstance,
+              target: depTarget,
               args,
               deps,
             }

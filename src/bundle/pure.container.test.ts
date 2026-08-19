@@ -274,10 +274,10 @@ describe('PureContainer.run — `condition` mapper transforms the constructor va
  *   - Current limitation: a constant is reachable through `runConstant` but is NOT
  *     resolvable as a `tie` graph dependency, because `tie` resolves dependencies through
  *     `composeFactoryBind(dep)` — a token a constant binding never registers — so the
- *     resolution fails through the "invalid dependencies" surface.
+ *     resolution fails through the "invalid deps" surface.
  *   - Each of the three failure paths inside the lazily-invoked factory produces a
  *     `CustomException.InternalError`: a throwing `condition` arg mapper ("invalid
- *     arguments"), an unresolvable dependency ("invalid dependencies"), and a throwing
+ *     arguments"), an unresolvable dependency ("invalid deps"), and a throwing
  *     constructor ("Pure Container Exception: ..."). The originating error is captured on
  *     the exception's `error` field; note it is NOT surfaced via `getErrorCause()` (which
  *     reflects `errorCause`, left unset on these paths).
@@ -395,7 +395,7 @@ describe('PureContainer.tieConst / runConstant — constant round-trip (Requirem
 
     expect(failure).toBeInstanceOf(CustomException);
     expect(failure.code).toBe(CustomErrorType.InternalError);
-    expect(failure.message).toContain('invalid dependencies');
+    expect(failure.message).toContain('invalid deps');
   });
 });
 
@@ -422,7 +422,7 @@ describe('PureContainer.run — CustomException.InternalError error surfaces (Re
     expect(failure.getErrorCause()).toBeUndefined();
   });
 
-  test('invalid dependencies: an unregistered dependency yields the "invalid dependencies" surface', () => {
+  test('invalid deps: an unregistered dependency yields the "invalid deps" surface', () => {
     const container = new PureContainer();
 
     container.tie({
@@ -433,7 +433,7 @@ describe('PureContainer.run — CustomException.InternalError error surfaces (Re
 
     expect(failure).toBeInstanceOf(CustomException);
     expect(failure.code).toBe(CustomErrorType.InternalError);
-    expect(failure.message).toContain('invalid dependencies');
+    expect(failure.message).toContain('invalid deps');
   });
 
   test('throwing constructor: a failing `new instance(...)` yields the construction surface', () => {
