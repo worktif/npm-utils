@@ -1,6 +1,6 @@
 {
   "name": "@worktif/utils",
-  "version": "0.3.2",
+  "version": "0.4.0",
   "description": "TypeScript utilities library providing dependency injection, logging, exception handling, and Zod validation tools with AWS Lambda integration",
   "author": "Raman Marozau, raman@worktif.com",
   "license": "Apache-2.0",
