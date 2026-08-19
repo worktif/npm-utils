@@ -20,7 +20,7 @@ import { FakeLeaf, FakeNode, ThrowingCtor, THROWING_CTOR_MESSAGE } from '../../t
  *
  * Behavior pinned (see design Data Models — `PureContainer.tied` entry shape and the
  * constructor application order `new Instance(...mappedArgs, ...resolvedDeps)`):
- *   - `tie` records, per binding name, a `{ instance, args, dependencies }` entry where
+ *   - `tie` records, per binding name, a `{ target, args, dependencies }` entry where
  *     `instance` is the Inversify binding HANDLE (not the constructed value).
  *   - `run` applies mapped static `args` first, then resolved `dependencies`.
  *   - each static arg's `condition` mapper transforms the value handed to the constructor.
@@ -47,7 +47,7 @@ describe('PureContainer.tie — binding registration into `tied` (Requirement 4.
     const args = [{ value: 'tag-a' }];
 
     container.tie({
-      leaf: { instance: FakeLeaf, args, dependencies: [] },
+      leaf: { target: FakeLeaf, args, deps: [] },
     });
 
     expect(container.tied).toBeDefined();
@@ -55,17 +55,17 @@ describe('PureContainer.tie — binding registration into `tied` (Requirement 4.
 
     const entry = container.tied!.leaf;
     expect(entry.args).toBe(args);
-    expect(entry.dependencies).toEqual([]);
+    expect(entry.deps).toEqual([]);
   });
 
   test('stores the Inversify binding HANDLE in `instance`, not a constructed value', () => {
     const container = new PureContainer();
 
     container.tie({
-      leaf: { instance: FakeLeaf, args: [{ value: 'tag-a' }], dependencies: [] },
+      leaf: { target: FakeLeaf, args: [{ value: 'tag-a' }], deps: [] },
     });
 
-    const handle = container.tied!.leaf.instance;
+    const handle = container.tied!.leaf.target;
 
     // The recorded handle is the fluent binding object returned by `bind().toFactory()`,
     // never an eagerly constructed `FakeLeaf`. Construction happens lazily in `run`.
@@ -78,7 +78,7 @@ describe('PureContainer.tie — binding registration into `tied` (Requirement 4.
     const container = new PureContainer();
 
     container.tie({
-      leaf: { instance: FakeLeaf, args: [{ value: 'tag-a' }], dependencies: [] },
+      leaf: { target: FakeLeaf, args: [{ value: 'tag-a' }], deps: [] },
     });
 
     // Resolving the factory token directly proves `tie` registered the binding under
@@ -94,22 +94,22 @@ describe('PureContainer.tie — binding registration into `tied` (Requirement 4.
     const container = new PureContainer();
 
     container.tie({
-      leaf: { instance: FakeLeaf, args: [{ value: 'leaf' }], dependencies: [] },
-      node: { instance: FakeNode, args: [{ value: 'arg' }], dependencies: ['leaf'] },
+      leaf: { target: FakeLeaf, args: [{ value: 'leaf' }], deps: [] },
+      node: { target: FakeNode, args: [{ value: 'arg' }], deps: ['leaf'] },
     });
 
-    expect(container.tied!.node.dependencies).toEqual(['leaf']);
-    expect(container.tied!.leaf.dependencies).toEqual([]);
+    expect(container.tied!.node.deps).toEqual(['leaf']);
+    expect(container.tied!.leaf.deps).toEqual([]);
   });
 
   test('accumulates entries across multiple `tie` calls', () => {
     const container = new PureContainer();
 
     container.tie({
-      leaf: { instance: FakeLeaf, args: [{ value: 'leaf' }], dependencies: [] },
+      leaf: { target: FakeLeaf, args: [{ value: 'leaf' }], deps: [] },
     });
     container.tie({
-      other: { instance: FakeLeaf, args: [{ value: 'other' }], dependencies: [] },
+      other: { target: FakeLeaf, args: [{ value: 'other' }], deps: [] },
     });
 
     expect(container.tied).toHaveProperty('leaf');
@@ -122,8 +122,8 @@ describe('PureContainer.run — constructor argument ordering (Requirement 4.2)'
     const container = new PureContainer();
 
     container.tie({
-      leaf: { instance: FakeLeaf, args: [{ value: 'leaf-tag' }], dependencies: [] },
-      node: { instance: FakeNode, args: [{ value: 'static-arg' }], dependencies: ['leaf'] },
+      leaf: { target: FakeLeaf, args: [{ value: 'leaf-tag' }], deps: [] },
+      node: { target: FakeNode, args: [{ value: 'static-arg' }], deps: ['leaf'] },
     });
 
     const node = container.run<FakeNode>('node');
@@ -139,12 +139,12 @@ describe('PureContainer.run — constructor argument ordering (Requirement 4.2)'
     const container = new PureContainer();
 
     container.tie({
-      depA: { instance: FakeLeaf, args: [{ value: 'A' }], dependencies: [] },
-      depB: { instance: FakeLeaf, args: [{ value: 'B' }], dependencies: [] },
+      depA: { target: FakeLeaf, args: [{ value: 'A' }], deps: [] },
+      depB: { target: FakeLeaf, args: [{ value: 'B' }], deps: [] },
       probe: {
-        instance: ArgOrderProbe,
+        target: ArgOrderProbe,
         args: [{ value: 'arg-0' }, { value: 'arg-1' }],
-        dependencies: ['depA', 'depB'],
+        deps: ['depA', 'depB'],
       },
     });
 
@@ -165,8 +165,8 @@ describe('PureContainer.run — constructor argument ordering (Requirement 4.2)'
     const container = new PureContainer();
 
     container.tie({
-      leaf: { instance: FakeLeaf, args: [{ value: 'sole-dep' }], dependencies: [] },
-      probe: { instance: ArgOrderProbe, args: [], dependencies: ['leaf'] },
+      leaf: { target: FakeLeaf, args: [{ value: 'sole-dep' }], deps: [] },
+      probe: { target: ArgOrderProbe, args: [], deps: ['leaf'] },
     });
 
     const probe = container.run<ArgOrderProbe>('probe');
@@ -180,9 +180,9 @@ describe('PureContainer.run — constructor argument ordering (Requirement 4.2)'
 
     container.tie({
       probe: {
-        instance: ArgOrderProbe,
+        target: ArgOrderProbe,
         args: [{ value: 'only-arg' }],
-        dependencies: [],
+        deps: [],
       },
     });
 
@@ -198,9 +198,9 @@ describe('PureContainer.run — `condition` mapper transforms the constructor va
 
     container.tie({
       leaf: {
-        instance: FakeLeaf,
+        target: FakeLeaf,
         args: [{ value: 'raw', condition: (v: string) => `${v}-mapped` }],
-        dependencies: [],
+        deps: [],
       },
     });
 
@@ -215,7 +215,7 @@ describe('PureContainer.run — `condition` mapper transforms the constructor va
     const condition = jest.fn((v: number) => v * 10);
 
     container.tie({
-      leaf: { instance: FakeLeaf, args: [{ value: 7, condition }], dependencies: [] },
+      leaf: { target: FakeLeaf, args: [{ value: 7, condition }], deps: [] },
     });
 
     const leaf = container.run<FakeLeaf>('leaf');
@@ -228,7 +228,7 @@ describe('PureContainer.run — `condition` mapper transforms the constructor va
     const container = new PureContainer();
 
     container.tie({
-      leaf: { instance: FakeLeaf, args: [{ value: 'unchanged' }], dependencies: [] },
+      leaf: { target: FakeLeaf, args: [{ value: 'unchanged' }], deps: [] },
     });
 
     const leaf = container.run<FakeLeaf>('leaf');
@@ -241,13 +241,13 @@ describe('PureContainer.run — `condition` mapper transforms the constructor va
 
     container.tie({
       probe: {
-        instance: ArgOrderProbe,
+        target: ArgOrderProbe,
         args: [
           { value: 'a', condition: (v: string) => v.toUpperCase() },
           { value: 'b' },
           { value: 3, condition: (v: number) => v + 1 },
         ],
-        dependencies: [],
+        deps: [],
       },
     });
 
@@ -268,16 +268,16 @@ describe('PureContainer.run — `condition` mapper transforms the constructor va
  *
  * Behavior pinned:
  *   - `tieConst` binds each name as an Inversify constant value `condition(value)` and
- *     records a `{ instance, args, dependencies }` entry whose `instance` is the binding
+ *     records a `{ target, args, dependencies }` entry whose `instance` is the binding
  *     HANDLE (mirroring `tie`); `runConstant(name)` retrieves the bound value via the RAW
  *     name token (NOT the `composeFactoryBind` factory envelope).
  *   - Current limitation: a constant is reachable through `runConstant` but is NOT
  *     resolvable as a `tie` graph dependency, because `tie` resolves dependencies through
  *     `composeFactoryBind(dep)` — a token a constant binding never registers — so the
- *     resolution fails through the "invalid dependencies" surface.
+ *     resolution fails through the "invalid deps" surface.
  *   - Each of the three failure paths inside the lazily-invoked factory produces a
  *     `CustomException.InternalError`: a throwing `condition` arg mapper ("invalid
- *     arguments"), an unresolvable dependency ("invalid dependencies"), and a throwing
+ *     arguments"), an unresolvable dependency ("invalid deps"), and a throwing
  *     constructor ("Pure Container Exception: ..."). The originating error is captured on
  *     the exception's `error` field; note it is NOT surfaced via `getErrorCause()` (which
  *     reflects `errorCause`, left unset on these paths).
@@ -315,7 +315,7 @@ describe('PureContainer.tieConst / runConstant — constant round-trip (Requirem
     const container = new PureContainer();
 
     container.tieConst({
-      konst: { instance: FakeLeaf, args: [{ value: 'const-value' }], dependencies: [] },
+      konst: { target: FakeLeaf, args: [{ value: 'const-value' }], deps: [] },
     });
 
     expect(container.runConstant<string>('konst')).toBe('const-value');
@@ -326,9 +326,9 @@ describe('PureContainer.tieConst / runConstant — constant round-trip (Requirem
 
     container.tieConst({
       konst: {
-        instance: FakeLeaf,
+        target: FakeLeaf,
         args: [{ value: 'abc', condition: (v: string) => v.toUpperCase() }],
-        dependencies: [],
+        deps: [],
       },
     });
 
@@ -340,37 +340,37 @@ describe('PureContainer.tieConst / runConstant — constant round-trip (Requirem
     const payload = { nested: { count: 1 } };
 
     container.tieConst({
-      konst: { instance: FakeLeaf, args: [{ value: payload }], dependencies: [] },
+      konst: { target: FakeLeaf, args: [{ value: payload }], deps: [] },
     });
 
     // Constants round-trip by reference — no cloning or transformation is applied.
     expect(container.runConstant<typeof payload>('konst')).toBe(payload);
   });
 
-  test('records a `{ instance, args, dependencies }` entry with the binding HANDLE', () => {
+  test('records a `{ target, args, dependencies }` entry with the binding HANDLE', () => {
     const container = new PureContainer();
     const args = [{ value: 'const-value' }];
 
     container.tieConst({
-      konst: { instance: FakeLeaf, args, dependencies: [] },
+      konst: { target: FakeLeaf, args, deps: [] },
     });
 
     expect(container.tied).toHaveProperty('konst');
 
     const entry = container.tied!.konst;
     expect(entry.args).toBe(args);
-    expect(entry.dependencies).toEqual([]);
+    expect(entry.deps).toEqual([]);
     // The stored handle is the fluent constant binding, never the raw value.
-    expect(entry.instance).toBeDefined();
-    expect(entry.instance).not.toBe('const-value');
-    expect(typeof entry.instance).toBe('object');
+    expect(entry.target).toBeDefined();
+    expect(entry.target).not.toBe('const-value');
+    expect(typeof entry.target).toBe('object');
   });
 
   test('binds the constant under the RAW name token, not the `composeFactoryBind` envelope', () => {
     const container = new PureContainer();
 
     container.tieConst({
-      konst: { instance: FakeLeaf, args: [{ value: 'const-value' }], dependencies: [] },
+      konst: { target: FakeLeaf, args: [{ value: 'const-value' }], deps: [] },
     });
 
     // Retrieval succeeds through the raw name...
@@ -383,10 +383,10 @@ describe('PureContainer.tieConst / runConstant — constant round-trip (Requirem
     const container = new PureContainer();
 
     container.tieConst({
-      konst: { instance: FakeLeaf, args: [{ value: 'const-dep' }], dependencies: [] },
+      konst: { target: FakeLeaf, args: [{ value: 'const-dep' }], deps: [] },
     });
     container.tie({
-      node: { instance: FakeNode, args: [], dependencies: ['konst'] },
+      node: { target: FakeNode, args: [], deps: ['konst'] },
     });
 
     // `tie` resolves dependencies via `composeFactoryBind('konst')`, which the constant
@@ -395,7 +395,7 @@ describe('PureContainer.tieConst / runConstant — constant round-trip (Requirem
 
     expect(failure).toBeInstanceOf(CustomException);
     expect(failure.code).toBe(CustomErrorType.InternalError);
-    expect(failure.message).toContain('invalid dependencies');
+    expect(failure.message).toContain('invalid deps');
   });
 });
 
@@ -406,9 +406,9 @@ describe('PureContainer.run — CustomException.InternalError error surfaces (Re
 
     container.tie({
       leaf: {
-        instance: FakeLeaf,
+        target: FakeLeaf,
         args: [{ value: 'x', condition: () => { throw argError; } }],
-        dependencies: [],
+        deps: [],
       },
     });
 
@@ -422,25 +422,25 @@ describe('PureContainer.run — CustomException.InternalError error surfaces (Re
     expect(failure.getErrorCause()).toBeUndefined();
   });
 
-  test('invalid dependencies: an unregistered dependency yields the "invalid dependencies" surface', () => {
+  test('invalid deps: an unregistered dependency yields the "invalid deps" surface', () => {
     const container = new PureContainer();
 
     container.tie({
-      node: { instance: FakeNode, args: [], dependencies: ['ghost'] },
+      node: { target: FakeNode, args: [], deps: ['ghost'] },
     });
 
     const failure = captureRunFailure(() => container.run<FakeNode>('node'));
 
     expect(failure).toBeInstanceOf(CustomException);
     expect(failure.code).toBe(CustomErrorType.InternalError);
-    expect(failure.message).toContain('invalid dependencies');
+    expect(failure.message).toContain('invalid deps');
   });
 
   test('throwing constructor: a failing `new instance(...)` yields the construction surface', () => {
     const container = new PureContainer();
 
     container.tie({
-      boom: { instance: ThrowingCtor, args: [], dependencies: [] },
+      boom: { target: ThrowingCtor, args: [], deps: [] },
     });
 
     const failure = captureRunFailure(() => container.run('boom'));
@@ -460,7 +460,7 @@ describe('PureContainer.run — CustomException.InternalError error surfaces (Re
     // Registering a binding with a throwing constructor must not throw at tie time.
     expect(() => {
       container.tie({
-        boom: { instance: ThrowingCtor, args: [], dependencies: [] },
+        boom: { target: ThrowingCtor, args: [], deps: [] },
       });
     }).not.toThrow();
 

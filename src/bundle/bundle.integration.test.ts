@@ -203,33 +203,33 @@ const composeRealGraph = (): ComposedGraph =>
       // Binding graph mirrors `Bundle.injectContainer()` (same keys, args, deps, order).
       container.tie({
         [DI.EnvConfigDefaultBind]: {
-          instance: EnvConfigDefault,
+          target: EnvConfigDefault,
           args: [{ value: false, condition: (support: boolean) => support }],
-          dependencies: [],
+          deps: [],
         },
         [DI.ApiSerializerBind]: {
-          instance: ApiSerializer,
-          dependencies: [],
+          target: ApiSerializer,
+          deps: [],
         },
         [DI.LoggerCli_plugin_ext]: {
-          instance: LoggerCliPluginExt,
-          dependencies: [],
+          target: LoggerCliPluginExt,
+          deps: [],
         },
         [DI.LoggerCli_plugin]: {
-          instance: LoggerCliPlugin,
-          dependencies: [DI.EnvConfigDefaultBind, DI.LoggerCli_plugin_ext],
+          target: LoggerCliPlugin,
+          deps: [DI.EnvConfigDefaultBind, DI.LoggerCli_plugin_ext],
         },
         [DI.SerializerFactoryBind]: {
-          instance: Serializer,
-          dependencies: [DI.ApiSerializerBind],
+          target: Serializer,
+          deps: [DI.ApiSerializerBind],
         },
         [DI.LoggerRuntimeFormatter_Local]: {
-          instance: RuntimeLoggerFormatter,
+          target: RuntimeLoggerFormatter,
           args: [{ value: { logsProvider: RuntimeLogFormatterProvider.Local } }],
-          dependencies: [],
+          deps: [],
         },
         [DI.LoggerRuntimeFormatter_Local_Shortened]: {
-          instance: RuntimeLoggerFormatter,
+          target: RuntimeLoggerFormatter,
           args: [
             {
               value: {
@@ -238,12 +238,12 @@ const composeRealGraph = (): ComposedGraph =>
               },
             },
           ],
-          dependencies: [],
+          deps: [],
         },
         [DI.LoggerRuntimeFormatter_Aws]: {
-          instance: RuntimeLoggerFormatter,
+          target: RuntimeLoggerFormatter,
           args: [{ value: { logsProvider: RuntimeLogFormatterProvider.Aws } }],
-          dependencies: [],
+          deps: [],
         },
       });
 

@@ -26,7 +26,7 @@ export type Newable<TInstance = unknown, TArgs extends unknown[] = any[]> = new 
  */
 export type ContainerTieOptions<T> = {
   name: Di;
-  instance: Newable<T>,
+  target: Newable<T>,
 }
 
 /**
@@ -61,8 +61,8 @@ export type PureStackArgs = {
  * @property {string[]} dependencies - A list of dependency indicators, such as strings or enums, that describe the dependencies associated with the instance.
  */
 export type PureStack<T> = {
-  instance: T, // @todo: check Newable is related or not
-  dependencies: string[], // Dependency Injection indicator string values. Example: Di, PurewsDi enums
+  target: T, // @todo: check Newable is related or not
+  deps: string[], // Dependency Injection indicator string values. Example: Di, PurewsDi enums
   args?: PureStackArgs[],
 }
 

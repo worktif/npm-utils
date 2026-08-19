@@ -209,56 +209,56 @@ export class Bundle {
   protected injectContainer() {
     const containers: PureTiedOptions<any, any> = { // @todo: the initial instance should already be defined, otherwise we run tie but we have no nay instance to bind
       [Di.EnvConfigDefaultBind]: {
-        instance: EnvConfigDefault,
+        target: EnvConfigDefault,
         args: [{
           value: this.support ?? false,
           condition: (support: boolean) => support,
         }],
-        dependencies: [],
+        deps: [],
       },
       [Di.ApiSerializerBind]: {
-        instance: ApiSerializer,
-        dependencies: [],
+        target: ApiSerializer,
+        deps: [],
       },
       [Di.LoggerCli_plugin_ext]: {
-        instance: LoggerCliPluginExt,
-        dependencies: [],
+        target: LoggerCliPluginExt,
+        deps: [],
       },
       [Di.LoggerCli_plugin]: {
-        instance: LoggerCliPlugin,
-        dependencies: [Di.EnvConfigDefaultBind, Di.LoggerCli_plugin_ext],
+        target: LoggerCliPlugin,
+        deps: [Di.EnvConfigDefaultBind, Di.LoggerCli_plugin_ext],
       },
       [Di.SerializerFactoryBind]: {
-        instance: Serializer,
-        dependencies: [Di.ApiSerializerBind],
+        target: Serializer,
+        deps: [Di.ApiSerializerBind],
       },
       [Di.LoggerRuntimeFormatter_Local]: {
-        instance: RuntimeLoggerFormatter,
+        target: RuntimeLoggerFormatter,
         args: [{
           value: {
             logsProvider: RuntimeLogFormatterProvider.Local,
           },
         }],
-        dependencies: [],
+        deps: [],
       },
       [Di.LoggerRuntimeFormatter_Local_Shortened]: {
-        instance: RuntimeLoggerFormatter,
+        target: RuntimeLoggerFormatter,
         args: [{
           value: {
             logsProvider: RuntimeLogFormatterProvider.Local,
             isShortened: true,
           },
         }],
-        dependencies: [],
+        deps: [],
       },
       [Di.LoggerRuntimeFormatter_Aws]: {
-        instance: RuntimeLoggerFormatter,
+        target: RuntimeLoggerFormatter,
         args: [{
           value: {
             logsProvider: RuntimeLogFormatterProvider.Aws,
           },
         }],
-        dependencies: [],
+        deps: [],
       },
     };
     // @todo: replace internal arguments to a method args, so that, we expect to tie & run at the same time

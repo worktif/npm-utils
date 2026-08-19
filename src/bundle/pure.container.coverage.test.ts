@@ -12,7 +12,7 @@ import type { PureTied, PureTiedOptions } from './pure.container.types';
 /**
  * The argument type `tieSingleton` actually consumes at RUNTIME: a map of binding name →
  * implementation class. NOTE: the production signature annotates this parameter as
- * `PureTiedOptions` (a `{ instance, args, dependencies }` descriptor map), but the method
+ * `PureTiedOptions` (a `{ target, args, dependencies }` descriptor map), but the method
  * body binds the VALUE itself as the class (`.to(value).inSingletonScope()`). That
  * signature/behavior mismatch is a production quirk under characterization here; tests
  * supply the runtime-correct shape and cast through `unknown` to satisfy the compiler
@@ -75,7 +75,7 @@ describe('PureContainer.tieSingleton — singleton-scoped binding registration (
 
     // `tieSingleton` binds the option VALUE itself as the implementation class
     // (`.to(instance).inSingletonScope()`), unlike `tie`/`tieConst` which destructure a
-    // `{ instance, args, dependencies }` descriptor.
+    // `{ target, args, dependencies }` descriptor.
     container.tieSingleton(asSingletonOptions({ leaf: SingletonService }));
 
     expect(container.tied).toBeDefined();
@@ -145,11 +145,11 @@ describe('PureContainer.merge — pure `tied` overlay (Requirement 12.2)', () =>
     const container = new PureContainer();
 
     container.tie({
-      leaf: { instance: FakeLeaf, args: [{ value: 'leaf' }], dependencies: [] },
+      leaf: { target: FakeLeaf, args: [{ value: 'leaf' }], deps: [] },
     });
 
     const nextTied = {
-      extra: { instance: {}, args: [], dependencies: [] },
+      extra: { target: {}, args: [], deps: [] },
     } as unknown as PureTied<string>;
 
     const merged = container.merge(nextTied);
@@ -165,7 +165,7 @@ describe('PureContainer.merge — pure `tied` overlay (Requirement 12.2)', () =>
     const container = new PureContainer();
 
     container.tie({
-      leaf: { instance: FakeLeaf, args: [{ value: 'original' }], dependencies: [] },
+      leaf: { target: FakeLeaf, args: [{ value: 'original' }], deps: [] },
     });
 
     const replacement = { sentinel: true } as unknown;
@@ -179,7 +179,7 @@ describe('PureContainer.merge — pure `tied` overlay (Requirement 12.2)', () =>
     const container = new PureContainer();
 
     const nextTied = {
-      only: { instance: {}, args: [], dependencies: [] },
+      only: { target: {}, args: [], deps: [] },
     } as unknown as PureTied<string>;
 
     const merged = container.merge(nextTied);
@@ -235,7 +235,7 @@ describe('PureContainer self-delegation guard — `tie`/`tieConst` proto recursi
 
     expect(() =>
       leaf.tie({
-        x: { instance: FakeLeaf, args: [{ value: 'x' }], dependencies: [] },
+        x: { target: FakeLeaf, args: [{ value: 'x' }], deps: [] },
       }),
     ).toThrow(TypeError);
   });
@@ -245,7 +245,7 @@ describe('PureContainer self-delegation guard — `tie`/`tieConst` proto recursi
 
     expect(() =>
       leaf.tieConst({
-        x: { instance: FakeLeaf, args: [{ value: 'x' }], dependencies: [] },
+        x: { target: FakeLeaf, args: [{ value: 'x' }], deps: [] },
       }),
     ).toThrow(TypeError);
   });

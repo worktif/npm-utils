@@ -109,7 +109,7 @@ describe('Bundle `support` constructor ordering (KNOWN BUG — Requirement 3.3)'
  * the `reduce` accumulator captured at that binding's declaration position
  * (`tiedAccumulated[dep].instance`), so a binding that references a dependency declared
  * LATER reads `undefined.instance` at run time and the resolution is wrapped as a
- * `CustomException.InternalError` ("invalid dependencies").
+ * `CustomException.InternalError` ("invalid deps").
  *
  * Confirmed current behavior (verified empirically, declaration-order sensitive):
  *   - A forward reference whose dependant is NOT the first declared binding (so the
@@ -131,9 +131,9 @@ describe('PureContainer forward-declared dependency (KNOWN BUG — Requirement 3
     // `reduce` accumulator is a truthy object at `node`'s position, so the lazy
     // `tiedAccumulated['leaf'].instance` dereference hits `undefined.instance`.
     container.tie({
-      filler: { instance: FakeLeaf, args: [{ value: 'filler' }], dependencies: [] },
-      node: { instance: FakeNode, args: [{ value: 'node-arg' }], dependencies: ['leaf'] },
-      leaf: { instance: FakeLeaf, args: [{ value: 'leaf-tag' }], dependencies: [] },
+      filler: { target: FakeLeaf, args: [{ value: 'filler' }], deps: [] },
+      node: { target: FakeNode, args: [{ value: 'node-arg' }], deps: ['leaf'] },
+      leaf: { target: FakeLeaf, args: [{ value: 'leaf-tag' }], deps: [] },
     });
 
     // CURRENT (defective) behavior: resolving the forward-referencing binding throws.
@@ -150,7 +150,7 @@ describe('PureContainer forward-declared dependency (KNOWN BUG — Requirement 3
     expect(captured).toBeInstanceOf(CustomException);
     expect(captured!.code).toBe(CustomErrorType.InternalError);
     // The wrapper attributes the failure to dependency resolution...
-    expect(captured!.message).toMatch(/invalid dependencies/);
+    expect(captured!.message).toMatch(/invalid deps/);
     expect(captured!.message).toContain('["leaf"]');
     // ...and preserves the underlying cause (the `undefined.instance` dereference).
     expect(captured!.message).toMatch(/Cannot read properties of undefined/);
@@ -161,8 +161,8 @@ describe('PureContainer forward-declared dependency (KNOWN BUG — Requirement 3
 
     // Identical instances/args, only the declaration order changed: `leaf` before `node`.
     container.tie({
-      leaf: { instance: FakeLeaf, args: [{ value: 'leaf-tag' }], dependencies: [] },
-      node: { instance: FakeNode, args: [{ value: 'node-arg' }], dependencies: ['leaf'] },
+      leaf: { target: FakeLeaf, args: [{ value: 'leaf-tag' }], deps: [] },
+      node: { target: FakeNode, args: [{ value: 'node-arg' }], deps: ['leaf'] },
     });
 
     const node = container.run<FakeNode>('node');

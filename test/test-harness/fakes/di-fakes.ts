@@ -15,7 +15,7 @@ import 'reflect-metadata';
  * @example
  * ```ts
  * container.tie({
- *   leaf: { instance: FakeLeaf, args: [{ value: 'tag-a' }], dependencies: [] },
+ *   leaf: { target: FakeLeaf, args: [{ value: 'tag-a' }], deps: [] },
  * });
  * const leaf = container.run<FakeLeaf>('leaf');
  * expect(leaf.tag).toBe('tag-a');
@@ -41,8 +41,8 @@ export class FakeLeaf {
  * @example
  * ```ts
  * container.tie({
- *   leaf: { instance: FakeLeaf, args: [{ value: 'leaf' }], dependencies: [] },
- *   node: { instance: FakeNode, args: [{ value: 'arg' }], dependencies: ['leaf'] },
+ *   leaf: { target: FakeLeaf, args: [{ value: 'leaf' }], deps: [] },
+ *   node: { target: FakeNode, args: [{ value: 'arg' }], deps: ['leaf'] },
  * });
  * const node = container.run<FakeNode>('node');
  * expect(node.arg).toBe('arg');

@@ -50,9 +50,9 @@ class ArgOrderProbe {
 
 /** A binding-option entry as accepted by `PureContainer.tie` (test-local shape). */
 type TieEntry = {
-  instance: unknown;
+  target: unknown;
   args: { value: unknown; condition?: (value: unknown) => unknown }[];
-  dependencies: string[];
+  deps: string[];
 };
 
 /**
@@ -106,15 +106,15 @@ describe('Property 2 — constructor argument ordering (args before deps)', () =
           const options: Record<string, TieEntry> = {};
           depTags.forEach((tag: string, index: number) => {
             options[`dep_${index}`] = {
-              instance: FakeLeaf,
+              target: FakeLeaf,
               args: [{ value: tag }],
-              dependencies: [],
+              deps: [],
             };
           });
           options.probe = {
-            instance: ArgOrderProbe,
+            target: ArgOrderProbe,
             args: argValues.map((value: unknown) => ({ value })),
-            dependencies: depTags.map((_: string, index: number) => `dep_${index}`),
+            deps: depTags.map((_: string, index: number) => `dep_${index}`),
           };
 
           container.tie(options as never);
@@ -162,9 +162,9 @@ describe('Property 3 — condition mapper transforms the constructor value', () 
 
           container.tie({
             leaf: {
-              instance: FakeLeaf,
+              target: FakeLeaf,
               args: [{ value, condition: transform }],
-              dependencies: [],
+              deps: [],
             },
           } as never);
 
@@ -198,9 +198,9 @@ describe('Property 8 — fresh instance per run (current identity semantics)', (
 
         container.tie({
           [key]: {
-            instance: FakeLeaf,
+            target: FakeLeaf,
             args: [{ value: tag }],
-            dependencies: [],
+            deps: [],
           },
         } as never);
 
@@ -267,7 +267,7 @@ describe('Property 4 — constant binding round-trip', () => {
             : [{ value }];
 
           container.tieConst({
-            [key]: { instance: FakeLeaf, args, dependencies: [] },
+            [key]: { target: FakeLeaf, args, deps: [] },
           } as never);
 
           const expected = transform ? transform(value) : value;
@@ -284,7 +284,7 @@ describe('Property 4 — constant binding round-trip', () => {
         const container = new PureContainer();
 
         container.tieConst({
-          [key]: { instance: FakeLeaf, args: [{ value }], dependencies: [] },
+          [key]: { target: FakeLeaf, args: [{ value }], deps: [] },
         } as never);
 
         // The `Factory<key>` token a factory binding would use is never registered for a
@@ -292,16 +292,16 @@ describe('Property 4 — constant binding round-trip', () => {
         expect(() => container.get(composeFactoryBind(key))).toThrow();
 
         // ...and wiring the constant as a `tie` graph dependency fails through the
-        // "invalid dependencies" surface (resolution goes via `composeFactoryBind(dep)`).
+        // "invalid deps" surface (resolution goes via `composeFactoryBind(dep)`).
         container.tie({
-          node: { instance: FakeNode, args: [], dependencies: [key] },
+          node: { target: FakeNode, args: [], deps: [key] },
         } as never);
 
         const failure = captureRunFailure(() => container.run('node'));
 
         expect(failure).toBeInstanceOf(CustomException);
         expect(failure.code).toBe(CustomErrorType.InternalError);
-        expect(failure.message).toContain('invalid dependencies');
+        expect(failure.message).toContain('invalid deps');
       }),
       { numRuns: 100 },
     );
@@ -314,7 +314,7 @@ describe('Property 4 — constant binding round-trip', () => {
  * For any binding whose arg `condition` mapper throws, whose dependency is unregistered,
  * or whose constructor throws, the lazily-invoked factory raises a
  * `CustomException.InternalError`. Each failure path carries its own discriminating
- * message fragment ("invalid arguments", "invalid dependencies", "Pure Container
+ * message fragment ("invalid arguments", "invalid deps", "Pure Container
  * Exception:") so a single property covers all three surfaces across generated keys.
  *
  * **Validates: Requirements 4.5**
@@ -332,9 +332,9 @@ describe('Property 5 — error surfaces on invalid args/deps/ctor', () => {
 
           container.tie({
             [key]: {
-              instance: FakeLeaf,
+              target: FakeLeaf,
               args: [{ value, condition: () => { throw argError; } }],
-              dependencies: [],
+              deps: [],
             },
           } as never);
 
@@ -349,7 +349,7 @@ describe('Property 5 — error surfaces on invalid args/deps/ctor', () => {
     );
   });
 
-  test('invalid dependencies: an unregistered dependency yields an InternalError', () => {
+  test('invalid deps: an unregistered dependency yields an InternalError', () => {
     fc.assert(
       fc.property(arbBindingKey, (key: string) => {
         const container = new PureContainer();
@@ -357,14 +357,14 @@ describe('Property 5 — error surfaces on invalid args/deps/ctor', () => {
         // `ghost_<key>` is never tied, so its `composeFactoryBind` token is unresolvable;
         // prefixing the generated key guarantees the dependency differs from the binding.
         container.tie({
-          [key]: { instance: FakeNode, args: [], dependencies: [`ghost_${key}`] },
+          [key]: { target: FakeNode, args: [], deps: [`ghost_${key}`] },
         } as never);
 
         const failure = captureRunFailure(() => container.run(key));
 
         expect(failure).toBeInstanceOf(CustomException);
         expect(failure.code).toBe(CustomErrorType.InternalError);
-        expect(failure.message).toContain('invalid dependencies');
+        expect(failure.message).toContain('invalid deps');
       }),
       { numRuns: 100 },
     );
@@ -376,7 +376,7 @@ describe('Property 5 — error surfaces on invalid args/deps/ctor', () => {
         const container = new PureContainer();
 
         container.tie({
-          [key]: { instance: ThrowingCtor, args: [], dependencies: [] },
+          [key]: { target: ThrowingCtor, args: [], deps: [] },
         } as never);
 
         const failure = captureRunFailure(() => container.run(key));
