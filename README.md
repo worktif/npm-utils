@@ -294,10 +294,10 @@ void new OrderService().create({ id: 'o-1' });
 
 - `tie(options, ...args): void`
   - Registers factories under names. Each factory:
-    - `instance`: new-able constructor
+    - `target`: new-able constructor
     - `args`: optional argument descriptors: `{ value, condition? }[]`
       - resolved as the first constructor arguments
-    - `dependencies: string[]`
+    - `deps: string[]`
       - resolved instances are appended as subsequent constructor arguments
   - Deterministic factory resolution with explicit errors for invalid graphs
 
@@ -310,7 +310,7 @@ void new OrderService().create({ id: 'o-1' });
 - `tieConst(options, ...args): void`
   - Binds immutable constants under names. Each option accepts:
     - `args: [{ value: any, condition?: (v) => any }]`
-    - `dependencies: string[]` (not used for constants; for structure compatibility)
+    - `deps: string[]` (not used for constants; for structure compatibility)
   - Example: `Env => 'prod'`, `FeatureFlags => { a: true }`
 
 ### Decorators
